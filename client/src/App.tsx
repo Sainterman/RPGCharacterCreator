@@ -3,10 +3,12 @@ import './App.css'
 import CharacterList from './components/CharacterList'
 import CharacterForm from './components/CharacterForm'
 import XPManager from './components/XPManager'
+import CreationModeSelector from './components/CreationModeSelector'
+import TraditionalCreation from './components/TraditionalCreation'
 import type { Character } from './types/character'
 import { createEmptyCharacter } from './utils/characterUtils'
 
-type View = 'list' | 'form' | 'xp';
+type View = 'list' | 'modeSelector' | 'traditionalCreation' | 'form' | 'xp';
 
 function App() {
   const [currentView, setCurrentView] = useState<View>('list');
@@ -18,7 +20,20 @@ function App() {
   };
 
   const handleCreateNew = () => {
-    setSelectedCharacter(createEmptyCharacter());
+    setCurrentView('modeSelector');
+  };
+
+  const handleSelectMode = (mode: 'traditional' | 'freeform') => {
+    if (mode === 'traditional') {
+      setCurrentView('traditionalCreation');
+    } else {
+      setSelectedCharacter(createEmptyCharacter());
+      setCurrentView('form');
+    }
+  };
+
+  const handleTraditionalComplete = (character: Character) => {
+    setSelectedCharacter(character);
     setCurrentView('form');
   };
 
@@ -30,6 +45,10 @@ function App() {
   const handleCancel = () => {
     setCurrentView('list');
     setSelectedCharacter(null);
+  };
+
+  const handleCancelModeSelector = () => {
+    setCurrentView('list');
   };
 
   const handleOpenXPManager = () => {
@@ -52,6 +71,20 @@ function App() {
         <CharacterList
           onSelectCharacter={handleSelectCharacter}
           onCreateNew={handleCreateNew}
+        />
+      )}
+
+      {currentView === 'modeSelector' && (
+        <CreationModeSelector
+          onSelectMode={handleSelectMode}
+          onCancel={handleCancelModeSelector}
+        />
+      )}
+
+      {currentView === 'traditionalCreation' && (
+        <TraditionalCreation
+          onComplete={handleTraditionalComplete}
+          onCancel={handleCancel}
         />
       )}
       
