@@ -33,6 +33,7 @@ const TraditionalCreation: React.FC<TraditionalCreationProps> = ({ onComplete, o
     abilityPriorities: { talents: null, skills: null, knowledges: null },
   });
   const [freebiePoints, setFreebiePoints] = React.useState(CREATION_POINTS.freebiePoints);
+  const [characterBeforeFreebies, setCharacterBeforeFreebies] = React.useState<Character | null>(null);
 
   // Calculate points spent in each category
   const getAttributePointsSpent = (category: 'physical' | 'social' | 'mental'): number => {
@@ -125,6 +126,43 @@ const TraditionalCreation: React.FC<TraditionalCreationProps> = ({ onComplete, o
     }
   };
 
+  const unspendFreebiePoint = (type: keyof typeof FREEBIE_COSTS, currentValue: number, baseValue: number, updateFn: (value: number) => void) => {
+    // Can only unspend if the current value is greater than the base value (before freebies)
+    if (currentValue > baseValue) {
+      const cost = FREEBIE_COSTS[type];
+      setFreebiePoints(freebiePoints + cost);
+      updateFn(currentValue - 1);
+    }
+  };
+
+  const resetFreebies = () => {
+    if (characterBeforeFreebies) {
+      setCharacter(characterBeforeFreebies);
+      setFreebiePoints(CREATION_POINTS.freebiePoints);
+    }
+  };
+
+  const getBaseValue = (type: 'attribute' | 'ability' | 'sphere' | 'background' | 'arete' | 'willpower', key?: string): number => {
+    if (!characterBeforeFreebies) return 0;
+    
+    switch (type) {
+      case 'attribute':
+        return key ? characterBeforeFreebies.attributes[key as keyof Character['attributes']] : 0;
+      case 'ability':
+        return key ? characterBeforeFreebies.abilities[key as keyof Character['abilities']] : 0;
+      case 'sphere':
+        return key ? characterBeforeFreebies.spheres[key as keyof Character['spheres']] : 0;
+      case 'background':
+        return key ? characterBeforeFreebies.backgrounds[key as keyof Character['backgrounds']] : 0;
+      case 'arete':
+        return characterBeforeFreebies.arete;
+      case 'willpower':
+        return characterBeforeFreebies.willpower;
+      default:
+        return 0;
+    }
+  };
+
   const canProceed = (): boolean => {
     switch (step) {
       case 'concept':
@@ -148,7 +186,14 @@ const TraditionalCreation: React.FC<TraditionalCreationProps> = ({ onComplete, o
     const steps: Step[] = ['concept', 'attributes', 'abilities', 'advantages', 'freebies', 'review'];
     const currentIndex = steps.indexOf(step);
     if (currentIndex < steps.length - 1) {
-      setStep(steps[currentIndex + 1]);
+      const nextStep = steps[currentIndex + 1];
+      
+      // Save character state before entering freebies step for the first time
+      if (nextStep === 'freebies' && !characterBeforeFreebies) {
+        setCharacterBeforeFreebies({ ...character });
+      }
+      
+      setStep(nextStep);
     }
   };
 
@@ -734,6 +779,9 @@ const TraditionalCreation: React.FC<TraditionalCreationProps> = ({ onComplete, o
 
             <div className="freebie-display">
               <h3>Freebie Points Remaining: {freebiePoints}</h3>
+              <button onClick={resetFreebies} className="reset-freebies-button">
+                Reset All Freebies
+              </button>
             </div>
 
             <div className="freebie-costs">
@@ -743,66 +791,118 @@ const TraditionalCreation: React.FC<TraditionalCreationProps> = ({ onComplete, o
             <div className="freebie-grid">
               <div className="freebie-category">
                 <h3>Attributes (Cost: {FREEBIE_COSTS.attribute} each)</h3>
-                {Object.entries(character.attributes).map(([attr, value]) => (
-                  <div key={attr} className="freebie-item">
-                    <span>{attr.charAt(0).toUpperCase() + attr.slice(1)}</span>
-                    <span>{value}</span>
-                    <button
-                      onClick={() => spendFreebiePoint('attribute', value, (v) => updateAttribute(attr as keyof Character['attributes'], v))}
-                      disabled={freebiePoints < FREEBIE_COSTS.attribute || value >= 5}
-                    >
-                      + ({FREEBIE_COSTS.attribute} pts)
-                    </button>
-                  </div>
-                ))}
+                {Object.entries(character.attributes).map(([attr, value]) => {
+                  const baseValue = getBaseValue('attribute', attr);
+                  const canUnspend = value > baseValue;
+                  return (
+                    <div key={attr} className="freebie-item">
+                      <span>{attr.charAt(0).toUpperCase() + attr.slice(1)}</span>
+                      <span>{value}</span>
+                      <div className="freebie-buttons">
+                        <button
+                          onClick={() => unspendFreebiePoint('attribute', value, baseValue, (v) => updateAttribute(attr as keyof Character['attributes'], v))}
+                          disabled={!canUnspend}
+                          className="unspend-button"
+                        >
+                          -
+                        </button>
+                        <button
+                          onClick={() => spendFreebiePoint('attribute', value, (v) => updateAttribute(attr as keyof Character['attributes'], v))}
+                          disabled={freebiePoints < FREEBIE_COSTS.attribute || value >= 5}
+                        >
+                          + ({FREEBIE_COSTS.attribute} pts)
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="freebie-category">
                 <h3>Abilities (Cost: {FREEBIE_COSTS.ability} each)</h3>
-                {Object.entries(character.abilities).map(([ability, value]) => (
-                  <div key={ability} className="freebie-item">
-                    <span>{ability.charAt(0).toUpperCase() + ability.slice(1)}</span>
-                    <span>{value}</span>
-                    <button
-                      onClick={() => spendFreebiePoint('ability', value, (v) => updateAbility(ability as keyof Character['abilities'], v))}
-                      disabled={freebiePoints < FREEBIE_COSTS.ability || value >= 5}
-                    >
-                      + ({FREEBIE_COSTS.ability} pts)
-                    </button>
-                  </div>
-                ))}
+                {Object.entries(character.abilities).map(([ability, value]) => {
+                  const baseValue = getBaseValue('ability', ability);
+                  const canUnspend = value > baseValue;
+                  return (
+                    <div key={ability} className="freebie-item">
+                      <span>{ability.charAt(0).toUpperCase() + ability.slice(1)}</span>
+                      <span>{value}</span>
+                      <div className="freebie-buttons">
+                        <button
+                          onClick={() => unspendFreebiePoint('ability', value, baseValue, (v) => updateAbility(ability as keyof Character['abilities'], v))}
+                          disabled={!canUnspend}
+                          className="unspend-button"
+                        >
+                          -
+                        </button>
+                        <button
+                          onClick={() => spendFreebiePoint('ability', value, (v) => updateAbility(ability as keyof Character['abilities'], v))}
+                          disabled={freebiePoints < FREEBIE_COSTS.ability || value >= 5}
+                        >
+                          + ({FREEBIE_COSTS.ability} pts)
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="freebie-category">
                 <h3>Spheres (Cost: {FREEBIE_COSTS.sphere} each)</h3>
-                {Object.entries(character.spheres).map(([sphere, value]) => (
-                  <div key={sphere} className="freebie-item">
-                    <span>{sphere.charAt(0).toUpperCase() + sphere.slice(1)}</span>
-                    <span>{value}</span>
-                    <button
-                      onClick={() => spendFreebiePoint('sphere', value, (v) => updateSphere(sphere as keyof Character['spheres'], v))}
-                      disabled={freebiePoints < FREEBIE_COSTS.sphere || value >= 5}
-                    >
-                      + ({FREEBIE_COSTS.sphere} pts)
-                    </button>
-                  </div>
-                ))}
+                {Object.entries(character.spheres).map(([sphere, value]) => {
+                  const baseValue = getBaseValue('sphere', sphere);
+                  const canUnspend = value > baseValue;
+                  return (
+                    <div key={sphere} className="freebie-item">
+                      <span>{sphere.charAt(0).toUpperCase() + sphere.slice(1)}</span>
+                      <span>{value}</span>
+                      <div className="freebie-buttons">
+                        <button
+                          onClick={() => unspendFreebiePoint('sphere', value, baseValue, (v) => updateSphere(sphere as keyof Character['spheres'], v))}
+                          disabled={!canUnspend}
+                          className="unspend-button"
+                        >
+                          -
+                        </button>
+                        <button
+                          onClick={() => spendFreebiePoint('sphere', value, (v) => updateSphere(sphere as keyof Character['spheres'], v))}
+                          disabled={freebiePoints < FREEBIE_COSTS.sphere || value >= 5}
+                        >
+                          + ({FREEBIE_COSTS.sphere} pts)
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="freebie-category">
                 <h3>Backgrounds (Cost: {FREEBIE_COSTS.background} each)</h3>
-                {Object.entries(character.backgrounds).map(([bg, value]) => (
-                  <div key={bg} className="freebie-item">
-                    <span>{bg.charAt(0).toUpperCase() + bg.slice(1)}</span>
-                    <span>{value}</span>
-                    <button
-                      onClick={() => spendFreebiePoint('background', value, (v) => updateBackground(bg as keyof Character['backgrounds'], v))}
-                      disabled={freebiePoints < FREEBIE_COSTS.background || value >= 5}
-                    >
-                      + ({FREEBIE_COSTS.background} pts)
-                    </button>
-                  </div>
-                ))}
+                {Object.entries(character.backgrounds).map(([bg, value]) => {
+                  const baseValue = getBaseValue('background', bg);
+                  const canUnspend = value > baseValue;
+                  return (
+                    <div key={bg} className="freebie-item">
+                      <span>{bg.charAt(0).toUpperCase() + bg.slice(1)}</span>
+                      <span>{value}</span>
+                      <div className="freebie-buttons">
+                        <button
+                          onClick={() => unspendFreebiePoint('background', value, baseValue, (v) => updateBackground(bg as keyof Character['backgrounds'], v))}
+                          disabled={!canUnspend}
+                          className="unspend-button"
+                        >
+                          -
+                        </button>
+                        <button
+                          onClick={() => spendFreebiePoint('background', value, (v) => updateBackground(bg as keyof Character['backgrounds'], v))}
+                          disabled={freebiePoints < FREEBIE_COSTS.background || value >= 5}
+                        >
+                          + ({FREEBIE_COSTS.background} pts)
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="freebie-category">
@@ -810,31 +910,59 @@ const TraditionalCreation: React.FC<TraditionalCreationProps> = ({ onComplete, o
                 <div className="freebie-item">
                   <span>Arete</span>
                   <span>{character.arete}</span>
-                  <button
-                    onClick={() => spendFreebiePoint('arete', character.arete, (v) => updateCharacterField('arete', v))}
-                    disabled={freebiePoints < FREEBIE_COSTS.arete || character.arete >= 5}
-                  >
-                    + ({FREEBIE_COSTS.arete} pts)
-                  </button>
+                  <div className="freebie-buttons">
+                    <button
+                      onClick={() => unspendFreebiePoint('arete', character.arete, getBaseValue('arete'), (v) => updateCharacterField('arete', v))}
+                      disabled={character.arete <= getBaseValue('arete')}
+                      className="unspend-button"
+                    >
+                      -
+                    </button>
+                    <button
+                      onClick={() => spendFreebiePoint('arete', character.arete, (v) => updateCharacterField('arete', v))}
+                      disabled={freebiePoints < FREEBIE_COSTS.arete || character.arete >= 5}
+                    >
+                      + ({FREEBIE_COSTS.arete} pts)
+                    </button>
+                  </div>
                 </div>
                 <div className="freebie-item">
                   <span>Willpower</span>
                   <span>{character.willpower}</span>
-                  <button
-                    onClick={() => {
-                      if (freebiePoints >= FREEBIE_COSTS.willpower) {
-                        setFreebiePoints(freebiePoints - FREEBIE_COSTS.willpower);
-                        setCharacter({
-                          ...character,
-                          willpower: character.willpower + 1,
-                          willpowerCurrent: character.willpower + 1,
-                        });
-                      }
-                    }}
-                    disabled={freebiePoints < FREEBIE_COSTS.willpower || character.willpower >= 10}
-                  >
-                    + ({FREEBIE_COSTS.willpower} pt)
-                  </button>
+                  <div className="freebie-buttons">
+                    <button
+                      onClick={() => {
+                        const baseValue = getBaseValue('willpower');
+                        if (character.willpower > baseValue) {
+                          setFreebiePoints(freebiePoints + FREEBIE_COSTS.willpower);
+                          setCharacter({
+                            ...character,
+                            willpower: character.willpower - 1,
+                            willpowerCurrent: Math.min(character.willpowerCurrent, character.willpower - 1),
+                          });
+                        }
+                      }}
+                      disabled={character.willpower <= getBaseValue('willpower')}
+                      className="unspend-button"
+                    >
+                      -
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (freebiePoints >= FREEBIE_COSTS.willpower) {
+                          setFreebiePoints(freebiePoints - FREEBIE_COSTS.willpower);
+                          setCharacter({
+                            ...character,
+                            willpower: character.willpower + 1,
+                            willpowerCurrent: character.willpower + 1,
+                          });
+                        }
+                      }}
+                      disabled={freebiePoints < FREEBIE_COSTS.willpower || character.willpower >= 10}
+                    >
+                      + ({FREEBIE_COSTS.willpower} pt)
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -226,11 +226,31 @@
   border-radius: 8px;
   text-align: center;
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
 }
 
 .freebie-display h3 {
   margin: 0;
   font-size: 1.5em;
+}
+
+.reset-freebies-button {
+  background: #ffc107;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.reset-freebies-button:hover {
+  background: #e0a800;
 }
 
 .freebie-costs {
@@ -286,6 +306,11 @@
   color: #8B0000;
 }
 
+.freebie-buttons {
+  display: flex;
+  gap: 5px;
+}
+
 .freebie-item button {
   background: #8B0000;
   color: white;
@@ -304,6 +329,20 @@
 .freebie-item button:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+
+.unspend-button {
+  background: #dc3545 !important;
+  width: 32px !important;
+  padding: 6px !important;
+}
+
+.unspend-button:hover:not(:disabled) {
+  background: #c82333 !important;
+}
+
+.unspend-button:disabled {
+  background: #ccc !important;
 }
 
 /* Review */
