@@ -126,9 +126,9 @@ export function getCharacters(): Character[] {
   if (!stored) return [];
   
   try {
-    const characters = JSON.parse(stored);
+    const characters = JSON.parse(stored) as Character[];
     // Convert date strings back to Date objects
-    return characters.map((c: any) => ({
+    return characters.map((c) => ({
       ...c,
       createdAt: new Date(c.createdAt),
       updatedAt: new Date(c.updatedAt),

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Character } from '../types/character';
+import type { Character, Essence } from '../types/character';
 import { TRADITIONS, ESSENCES, NATURES, DEMEANORS } from '../constants/gameData';
 import { saveCharacter } from '../utils/characterUtils';
 import './CharacterForm.css';
@@ -13,7 +13,7 @@ interface CharacterFormProps {
 const CharacterForm: React.FC<CharacterFormProps> = ({ character, onSave, onCancel }) => {
   const [char, setChar] = React.useState<Character>(character);
 
-  const updateField = (field: keyof Character, value: any) => {
+  const updateField = <K extends keyof Character>(field: K, value: Character[K]) => {
     setChar({ ...char, [field]: value });
   };
 
@@ -111,7 +111,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({ character, onSave, onCanc
             <label>Essence</label>
             <select
               value={char.essence}
-              onChange={(e) => updateField('essence', e.target.value)}
+              onChange={(e) => updateField('essence', e.target.value as Essence)}
             >
               {ESSENCES.map((e) => (
                 <option key={e} value={e}>{e}</option>
