@@ -1,0 +1,106 @@
+.character-list {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.character-list h1 {
+  color: #8B0000;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.create-button {
+  background-color: #8B0000;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.create-button:hover {
+  background-color: #A00000;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.character-card {
+  background: white;
+  border: 2px solid #8B0000;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.character-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.character-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.character-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #8B0000;
+}
+
+.delete-button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-button:hover {
+  background: #c82333;
+}
+
+.character-info {
+  margin-bottom: 12px;
+}
+
+.character-info p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.character-meta {
+  border-top: 1px solid #ddd;
+  padding-top: 8px;
+}
+
+.character-meta small {
+  color: #666;
+  font-size: 12px;
+}
