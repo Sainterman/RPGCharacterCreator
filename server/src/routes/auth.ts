@@ -5,6 +5,13 @@ import pool from '../db';
 
 const router = Router();
 
+function generateToken(userId: string, username: string, email: string): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET environment variable is not set');
+  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+  return jwt.sign({ id: userId, username, email }, secret, { expiresIn } as jwt.SignOptions);
+}
+
 // POST /api/auth/register
 router.post('/register', async (req: Request, res: Response) => {
   try {
@@ -28,12 +35,7 @@ router.post('/register', async (req: Request, res: Response) => {
     );
 
     const user = result.rows[0];
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error('JWT_SECRET environment variable is not set');
-    }
-    const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
-    const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, secret, { expiresIn } as jwt.SignOptions);
+    const token = generateToken(user.id, user.username, user.email);
 
     res.status(201).json({ token, user: { id: user.id, username: user.username, email: user.email } });
   } catch (error: unknown) {
@@ -75,13 +77,7 @@ router.post('/login', async (req: Request, res: Response) => {
       return;
     }
 
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error('JWT_SECRET environment variable is not set');
-    }
-    const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
-    const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, secret, { expiresIn } as jwt.SignOptions);
-
+    const token = generateToken(user.id, user.username, user.email);
     res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
   } catch (error) {
     console.error('Login error:', error);

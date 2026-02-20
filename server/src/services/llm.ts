@@ -117,6 +117,9 @@ export async function generateSummary(messages: ChatMessage[], existingSummary: 
     throw new Error(`Ollama API error: ${response.status}`);
   }
 
-  const data = await response.json() as { response: string };
+  const data = await response.json() as { response?: string };
+  if (!data.response) {
+    throw new Error('Unexpected response structure from Ollama generate endpoint');
+  }
   return data.response.trim();
 }

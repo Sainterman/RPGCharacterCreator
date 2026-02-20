@@ -49,7 +49,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({ character, onSave, onCanc
   const handleSave = async () => {
     try {
       const updated = { ...char, updatedAt: new Date() };
-      if (updated.id && updated.id !== '') {
+      if (updated.id) {
         await apiUpdateCharacter(updated.id, updated.name || 'Unnamed', updated);
       } else {
         await apiCreateCharacter(updated.name || 'Unnamed', updated);

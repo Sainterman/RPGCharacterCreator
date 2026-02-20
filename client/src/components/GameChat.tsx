@@ -39,9 +39,9 @@ const GameChat: React.FC<GameChatProps> = ({ character, onBack }) => {
   const [savingCheckpoint, setSavingCheckpoint] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    loadSessions();
-  }, []);
+  // Run once on mount to fetch sessions; loadSessions is stable (no external deps change)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadSessions(); }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

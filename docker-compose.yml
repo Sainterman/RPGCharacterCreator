@@ -1,14 +1,55 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: mage
+      POSTGRES_PASSWORD: mage_password
+      POSTGRES_DB: mage_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./server/migrations/001_initial.sql:/docker-entrypoint-initdb.d/001_initial.sql
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://mage:mage_password@postgres:5432/mage_db
+      - JWT_SECRET=${JWT_SECRET:-change_this_secret_in_production}
+      - JWT_EXPIRES_IN=7d
+      - PORT=3001
+      - CLIENT_URL=http://localhost:5173
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3}
+    volumes:
+      - ./server/src:/app/src
+      - /app/node_modules
+    stdin_open: true
+    tty: true
+
   app:
     build: .
     ports:
       - "5173:5173"
+    depends_on:
+      - server
     volumes:
       - ./client:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3001
     stdin_open: true
     tty: true
+
+volumes:
+  postgres_data:
