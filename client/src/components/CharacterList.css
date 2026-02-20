@@ -104,3 +104,30 @@
   color: #666;
   font-size: 12px;
 }
+
+.list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logout-button {
+  background: transparent;
+  border: 1px solid #666;
+  color: #999;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.logout-button:hover {
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+.error-message {
+  color: #ff6b6b;
+  padding: 8px;
+  margin-bottom: 10px;
+}

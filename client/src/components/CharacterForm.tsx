@@ -2,6 +2,7 @@ import React from 'react';
 import type { Character, Essence } from '../types/character';
 import { TRADITIONS, ESSENCES, NATURES, DEMEANORS } from '../constants/gameData';
 import { saveCharacter } from '../utils/characterUtils';
+import { apiCreateCharacter, apiUpdateCharacter } from '../services/api';
 import './CharacterForm.css';
 
 interface CharacterFormProps {
@@ -45,9 +46,22 @@ const CharacterForm: React.FC<CharacterFormProps> = ({ character, onSave, onCanc
     });
   };
 
-  const handleSave = () => {
-    saveCharacter(char);
-    onSave();
+  const handleSave = async () => {
+    try {
+      const updated = { ...char, updatedAt: new Date() };
+      if (updated.id && updated.id !== '') {
+        await apiUpdateCharacter(updated.id, updated.name || 'Unnamed', updated);
+      } else {
+        await apiCreateCharacter(updated.name || 'Unnamed', updated);
+      }
+      onSave();
+    } catch {
+      // Fallback to localStorage if API fails; warn the user
+      console.warn('API save failed, falling back to localStorage');
+      alert('Could not reach the server. Character saved locally only.');
+      saveCharacter(char);
+      onSave();
+    }
   };
 
   return (
