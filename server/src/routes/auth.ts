@@ -41,7 +41,7 @@ router.post('/register', async (req: Request, res: Response) => {
   } catch (error: unknown) {
     const err = error as { code?: string };
     if (err.code === '23505') {
-      res.status(409).json({ error: 'Username or email already exists' });
+      res.status(409).json({ error: 'Registration failed. An account with these credentials may already exist.' });
     } else {
       console.error('Register error:', error);
       res.status(500).json({ error: 'Internal server error' });

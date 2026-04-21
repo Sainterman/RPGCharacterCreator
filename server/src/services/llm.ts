@@ -59,7 +59,8 @@ export async function streamChat(
   });
 
   if (!response.ok) {
-    throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+    console.error(`Ollama API error: ${response.status} ${response.statusText}`);
+    throw new Error('LLM service temporarily unavailable');
   }
 
   if (!response.body) {
@@ -84,8 +85,9 @@ export async function streamChat(
           fullResponse += parsed.message.content;
           onChunk(parsed.message.content);
         }
-      } catch {
-        // Skip malformed JSON lines
+      } catch (error) {
+        // Log and skip malformed JSON lines to help diagnose Ollama response issues
+        console.debug('Failed to parse Ollama JSON line:', line, error);
       }
     }
   }

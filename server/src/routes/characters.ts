@@ -69,9 +69,20 @@ router.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { name, data } = req.body;
 
+    // Treat undefined or an empty object as "no change" to the data field.
+    // This prevents accidentally wiping character data when sending {}.
+    let dataParam: string | null;
+    if (typeof data === 'undefined') {
+      dataParam = null;
+    } else if (data && typeof data === 'object' && Object.keys(data).length === 0) {
+      dataParam = null;
+    } else {
+      dataParam = JSON.stringify(data);
+    }
+
     const result = await pool.query(
       'UPDATE characters SET name = COALESCE($1, name), data = COALESCE($2, data), updated_at = NOW() WHERE id = $3 AND user_id = $4 RETURNING id, name, data, created_at, updated_at',
-      [name, data ? JSON.stringify(data) : null, req.params.id, req.user!.id]
+      [name, dataParam, req.params.id, req.user!.id]
     );
 
     if (result.rows.length === 0) {

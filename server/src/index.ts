@@ -8,12 +8,20 @@ import gameplayRoutes from './routes/gameplay';
 
 dotenv.config();
 
+// Derive and validate the allowed client origin for CORS.
+// IMPORTANT: CLIENT_URL must be a specific origin (e.g. "https://app.example.com"),
+// not a wildcard or pattern, because we use credentials: true below.
+const CLIENT_ORIGIN = process.env.CLIENT_URL || 'http://localhost:5173';
+if (CLIENT_ORIGIN.includes('*')) {
+  throw new Error('Invalid CLIENT_URL: wildcards are not allowed when using credentials: true in CORS configuration.');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: CLIENT_ORIGIN,
   credentials: true,
 }));
 app.use(express.json());

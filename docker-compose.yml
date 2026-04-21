@@ -24,7 +24,7 @@ services:
       - postgres
     environment:
       - DATABASE_URL=postgresql://mage:mage_password@postgres:5432/mage_db
-      - JWT_SECRET=${JWT_SECRET:-change_this_secret_in_production}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET environment variable must be set}
       - JWT_EXPIRES_IN=7d
       - PORT=3001
       - CLIENT_URL=http://localhost:5173

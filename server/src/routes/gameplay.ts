@@ -117,9 +117,9 @@ router.post('/message', async (req: AuthenticatedRequest, res: Response) => {
       [session_id, 'user', message]
     );
 
-    // Get recent messages for context (last 20 messages)
+    // Get earliest messages for context (oldest 20 messages)
     const messagesResult = await pool.query(
-      'SELECT role, content FROM (SELECT role, content, created_at FROM session_messages WHERE session_id = $1 ORDER BY created_at DESC LIMIT 20) sub ORDER BY created_at ASC',
+      'SELECT role, content FROM session_messages WHERE session_id = $1 ORDER BY created_at ASC LIMIT 20',
       [session_id]
     );
 
