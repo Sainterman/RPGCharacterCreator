@@ -4,6 +4,18 @@ import { authenticateToken } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
 
 const router = Router();
+const MAX_CHARACTER_NAME_LENGTH = 100;
+
+function isValidCharacterPayload(data: unknown): data is Record<string, unknown> {
+  if (!data || typeof data !== 'object') return false;
+  const value = data as Record<string, unknown>;
+  return (typeof value.id === 'undefined' || typeof value.id === 'string')
+    && typeof value.name === 'string'
+    && typeof value.attributes === 'object'
+    && typeof value.abilities === 'object'
+    && typeof value.spheres === 'object'
+    && typeof value.backgrounds === 'object';
+}
 
 // All routes require authentication
 router.use(authenticateToken);
@@ -51,6 +63,14 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       res.status(400).json({ error: 'Name and data are required' });
       return;
     }
+    if (typeof name !== 'string' || name.length < 1 || name.length > MAX_CHARACTER_NAME_LENGTH) {
+      res.status(400).json({ error: `Name must be 1-${MAX_CHARACTER_NAME_LENGTH} characters` });
+      return;
+    }
+    if (!isValidCharacterPayload(data)) {
+      res.status(400).json({ error: 'Character payload is invalid' });
+      return;
+    }
 
     const result = await pool.query(
       'INSERT INTO characters (user_id, name, data) VALUES ($1, $2, $3) RETURNING id, name, data, created_at, updated_at',
@@ -68,6 +88,14 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
 router.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { name, data } = req.body;
+    if (typeof name !== 'undefined' && (typeof name !== 'string' || name.length < 1 || name.length > MAX_CHARACTER_NAME_LENGTH)) {
+      res.status(400).json({ error: `Name must be 1-${MAX_CHARACTER_NAME_LENGTH} characters` });
+      return;
+    }
+    if (typeof data !== 'undefined' && data !== null && !isValidCharacterPayload(data)) {
+      res.status(400).json({ error: 'Character payload is invalid' });
+      return;
+    }
 
     // Treat undefined or an empty object as "no change" to the data field.
     // This prevents accidentally wiping character data when sending {}.

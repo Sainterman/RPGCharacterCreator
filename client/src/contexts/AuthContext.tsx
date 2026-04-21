@@ -16,6 +16,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const payloadBase64 = token.split('.')[1];
+    if (!payloadBase64) return true;
+    const payloadJson = atob(payloadBase64);
+    const payload = JSON.parse(payloadJson) as { exp?: number };
+    if (!payload.exp) return false;
+    return payload.exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -23,10 +36,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const storedToken = localStorage.getItem('auth_token');
     const storedUser = localStorage.getItem('auth_user');
-    if (storedToken && storedUser) {
+    if (storedToken && storedUser && !isTokenExpired(storedToken)) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
+      return;
     }
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+  }, []);
+
+  useEffect(() => {
+    const onAuthExpired = () => {
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener('auth:expired', onAuthExpired);
+    return () => window.removeEventListener('auth:expired', onAuthExpired);
   }, []);
 
   const login = (newToken: string, newUser: User) => {

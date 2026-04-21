@@ -40,6 +40,7 @@ cd RPGCharacterCreator
 
 # Set your JWT secret (required)
 export JWT_SECRET=your_very_long_random_secret_here
+export POSTGRES_PASSWORD=use_a_strong_random_password
 
 # Start all services (PostgreSQL, backend, frontend)
 docker compose up
@@ -48,6 +49,8 @@ docker compose up
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3001
 - PostgreSQL: localhost:5432
+
+> ⚠️ Use a strong `POSTGRES_PASSWORD` for anything beyond local development.
 
 ### Manual Setup
 
@@ -59,7 +62,7 @@ Run a local PostgreSQL instance (or use Docker):
 docker run -d \
   --name mage-postgres \
   -e POSTGRES_USER=mage \
-  -e POSTGRES_PASSWORD=mage_password \
+  -e POSTGRES_PASSWORD=replace_with_strong_password \
   -e POSTGRES_DB=mage_db \
   -p 5432:5432 \
   postgres:16-alpine
@@ -68,7 +71,7 @@ docker run -d \
 Apply the database schema:
 
 ```bash
-psql postgresql://mage:mage_password@localhost:5432/mage_db -f server/migrations/001_initial.sql
+psql postgresql://mage:replace_with_strong_password@localhost:5432/mage_db -f server/migrations/001_initial.sql
 ```
 
 #### 2. Backend
@@ -106,13 +109,20 @@ ollama serve
 
 Ollama runs on http://localhost:11434 by default. Configure `OLLAMA_BASE_URL` and `OLLAMA_MODEL` in `server/.env` if needed.
 
+For Docker Compose, the default `OLLAMA_BASE_URL` uses `host.docker.internal`, which works on Docker Desktop (macOS/Windows).  
+On Linux, set `OLLAMA_BASE_URL` explicitly before `docker compose up`, for example:
+
+```bash
+export OLLAMA_BASE_URL=http://172.17.0.1:11434
+```
+
 ## Environment Variables
 
 ### Backend (`server/.env`)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `postgresql://mage:mage_password@localhost:5432/mage_db` | PostgreSQL connection string |
+| `DATABASE_URL` | `postgresql://mage:replace_with_strong_password@localhost:5432/mage_db` | PostgreSQL connection string |
 | `JWT_SECRET` | *(required)* | Secret key for signing JWT tokens |
 | `JWT_EXPIRES_IN` | `7d` | JWT token expiration |
 | `PORT` | `3001` | Backend server port |

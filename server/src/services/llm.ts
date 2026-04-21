@@ -39,7 +39,8 @@ export async function streamChat(
   messages: ChatMessage[],
   character: CharacterData,
   checkpoints: SessionCheckpoint[],
-  onChunk: (text: string) => void
+  onChunk: (text: string) => void,
+  signal?: AbortSignal
 ): Promise<string> {
   const systemPrompt = buildSystemPrompt(character, checkpoints);
   
@@ -51,6 +52,7 @@ export async function streamChat(
   const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal,
     body: JSON.stringify({
       model: OLLAMA_MODEL,
       messages: ollamaMessages,

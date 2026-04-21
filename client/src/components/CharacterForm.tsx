@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Character, Essence } from '../types/character';
 import { TRADITIONS, ESSENCES, NATURES, DEMEANORS } from '../constants/gameData';
-import { saveCharacter } from '../utils/characterUtils';
 import { apiCreateCharacter, apiUpdateCharacter } from '../services/api';
 import './CharacterForm.css';
 
@@ -13,6 +12,7 @@ interface CharacterFormProps {
 
 const CharacterForm: React.FC<CharacterFormProps> = ({ character, onSave, onCancel }) => {
   const [char, setChar] = React.useState<Character>(character);
+  const [saveError, setSaveError] = React.useState('');
 
   const updateField = <K extends keyof Character>(field: K, value: Character[K]) => {
     setChar({ ...char, [field]: value });
@@ -54,13 +54,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({ character, onSave, onCanc
       } else {
         await apiCreateCharacter(updated.name || 'Unnamed', updated);
       }
+      setSaveError('');
       onSave();
-    } catch {
-      // Fallback to localStorage if API fails; warn the user
-      console.warn('API save failed, falling back to localStorage');
-      alert('Could not reach the server. Character saved locally only.');
-      saveCharacter(char);
-      onSave();
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Could not save character');
     }
   };
 
@@ -73,6 +70,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({ character, onSave, onCanc
           <button onClick={onCancel} className="cancel-button">Back</button>
         </div>
       </div>
+      {saveError && <div className="form-error">{saveError}</div>}
 
       <div className="form-section">
         <h2>Basic Information</h2>

@@ -8,7 +8,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: mage
-      POSTGRES_PASSWORD: mage_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD environment variable must be set}
       POSTGRES_DB: mage_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -23,7 +23,7 @@ services:
     depends_on:
       - postgres
     environment:
-      - DATABASE_URL=postgresql://mage:mage_password@postgres:5432/mage_db
+      - DATABASE_URL=postgresql://mage:${POSTGRES_PASSWORD}@postgres:5432/mage_db
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET environment variable must be set}
       - JWT_EXPIRES_IN=7d
       - PORT=3001

@@ -4,6 +4,12 @@ import jwt from 'jsonwebtoken';
 import pool from '../db';
 
 const router = Router();
+const BCRYPT_SALT_ROUNDS = 12;
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 128;
+const USERNAME_PATTERN = /^[a-zA-Z0-9_.-]+$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const DUMMY_HASH = '$2a$12$C6UzMDM.H6dfI/f/IKcEe.r2T1D7fL4.G2n4M4mxM2Qj8Y3s5j9iG'; // bcrypt hash for "password"
 
 function generateToken(userId: string, username: string, email: string): string {
   const secret = process.env.JWT_SECRET;
@@ -15,19 +21,33 @@ function generateToken(userId: string, username: string, email: string): string 
 // POST /api/auth/register
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password } = req.body as {
+      username?: string;
+      email?: string;
+      password?: string;
+    };
 
     if (!username || !email || !password) {
       res.status(400).json({ error: 'Username, email, and password are required' });
       return;
     }
 
-    if (password.length < 8) {
-      res.status(400).json({ error: 'Password must be at least 8 characters' });
+    if (username.length < 3 || username.length > 50 || !USERNAME_PATTERN.test(username)) {
+      res.status(400).json({ error: 'Username must be 3-50 chars and use only letters, numbers, _, ., or -' });
       return;
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    if (email.length > 255 || !EMAIL_PATTERN.test(email)) {
+      res.status(400).json({ error: 'A valid email address is required' });
+      return;
+    }
+
+    if (password.length < MIN_PASSWORD_LENGTH || password.length > MAX_PASSWORD_LENGTH) {
+      res.status(400).json({ error: `Password must be ${MIN_PASSWORD_LENGTH}-${MAX_PASSWORD_LENGTH} characters` });
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     const result = await pool.query(
       'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email, created_at',
@@ -52,7 +72,7 @@ router.post('/register', async (req: Request, res: Response) => {
 // POST /api/auth/login
 router.post('/login', async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body as { email?: string; password?: string };
 
     if (!email || !password) {
       res.status(400).json({ error: 'Email and password are required' });
@@ -64,15 +84,11 @@ router.post('/login', async (req: Request, res: Response) => {
       [email]
     );
 
-    if (result.rows.length === 0) {
-      res.status(401).json({ error: 'Invalid credentials' });
-      return;
-    }
-
     const user = result.rows[0];
-    const validPassword = await bcrypt.compare(password, user.password_hash);
+    const hashToCompare = user?.password_hash ?? DUMMY_HASH;
+    const validPassword = await bcrypt.compare(password, hashToCompare);
 
-    if (!validPassword) {
+    if (!user || !validPassword) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }

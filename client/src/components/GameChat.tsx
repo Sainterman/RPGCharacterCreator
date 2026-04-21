@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Character } from '../types/character';
 import {
   apiCreateSession,
@@ -36,28 +36,27 @@ const GameChat: React.FC<GameChatProps> = ({ character, onBack }) => {
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
   const [savingCheckpoint, setSavingCheckpoint] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Run once on mount to fetch sessions; loadSessions is stable (no external deps change)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { loadSessions(); }, []);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async () => {
     try {
       const allSessions = await apiGetSessions();
       const charSessions = allSessions.filter((s: Session) =>
         s.character_id === character.id
       );
       setSessions(charSessions);
-    } catch {
-      setError('Failed to load sessions');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load sessions');
     }
-  };
+  }, [character.id]);
+
+  useEffect(() => { loadSessions(); }, [loadSessions]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const startNewSession = async () => {
     try {
@@ -65,8 +64,8 @@ const GameChat: React.FC<GameChatProps> = ({ character, onBack }) => {
       setSessions(prev => [session, ...prev]);
       setActiveSessionId(session.id);
       setMessages([]);
-    } catch {
-      setError('Failed to start session');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start session');
     }
   };
 
@@ -78,8 +77,8 @@ const GameChat: React.FC<GameChatProps> = ({ character, onBack }) => {
         role: m.role,
         content: m.content,
       })));
-    } catch {
-      setError('Failed to load messages');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load messages');
     }
   };
 
@@ -106,8 +105,8 @@ const GameChat: React.FC<GameChatProps> = ({ character, onBack }) => {
           return updated;
         });
       });
-    } catch {
-      setError('Failed to get response. Is the LLM server running?');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get response. Is the LLM server running?');
       setMessages(prev => prev.slice(0, -1));
     } finally {
       setStreaming(false);
@@ -120,9 +119,10 @@ const GameChat: React.FC<GameChatProps> = ({ character, onBack }) => {
     try {
       await apiSaveCheckpoint(activeSessionId);
       setError('');
-      alert('Checkpoint saved! Session summary updated.');
-    } catch {
-      setError('Failed to save checkpoint. Is the LLM server running?');
+      setStatusMessage('Checkpoint saved! Session summary updated.');
+      setTimeout(() => setStatusMessage(''), 4000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save checkpoint. Is the LLM server running?');
     } finally {
       setSavingCheckpoint(false);
     }
@@ -200,6 +200,7 @@ const GameChat: React.FC<GameChatProps> = ({ character, onBack }) => {
             </div>
 
             {error && <div className="chat-error">{error}</div>}
+            {statusMessage && <div className="chat-success">{statusMessage}</div>}
 
             <div className="chat-input-area">
               <textarea

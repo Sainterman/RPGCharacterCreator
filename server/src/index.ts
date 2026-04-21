@@ -42,7 +42,8 @@ const authLimiter = rateLimit({
 });
 
 app.use('/api/auth', authLimiter);
-app.use('/api/', defaultLimiter);
+app.use('/api/characters', defaultLimiter);
+app.use('/api/gameplay', defaultLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);

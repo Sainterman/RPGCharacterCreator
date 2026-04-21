@@ -6,6 +6,10 @@ import { streamChat, generateSummary, ChatMessage } from '../services/llm';
 
 const router = Router();
 router.use(authenticateToken);
+const MAX_SESSION_TITLE_LENGTH = 255;
+const MAX_SUMMARY_LENGTH = 10000;
+const MAX_MESSAGE_LENGTH = 5000;
+const CONTEXT_MESSAGE_LIMIT = 20;
 
 // GET /api/gameplay/sessions - List user's sessions
 router.get('/sessions', async (req: AuthenticatedRequest, res: Response) => {
@@ -32,6 +36,10 @@ router.post('/sessions', async (req: AuthenticatedRequest, res: Response) => {
 
     if (!character_id) {
       res.status(400).json({ error: 'character_id is required' });
+      return;
+    }
+    if (title && (typeof title !== 'string' || title.length > MAX_SESSION_TITLE_LENGTH)) {
+      res.status(400).json({ error: `title must be <= ${MAX_SESSION_TITLE_LENGTH} characters` });
       return;
     }
 
@@ -93,6 +101,10 @@ router.post('/message', async (req: AuthenticatedRequest, res: Response) => {
       res.status(400).json({ error: 'session_id and message are required' });
       return;
     }
+    if (typeof message !== 'string' || message.length > MAX_MESSAGE_LENGTH) {
+      res.status(400).json({ error: `message must be <= ${MAX_MESSAGE_LENGTH} characters` });
+      return;
+    }
 
     // Verify session belongs to user and get character data
     const sessionResult = await pool.query(
@@ -117,10 +129,10 @@ router.post('/message', async (req: AuthenticatedRequest, res: Response) => {
       [session_id, 'user', message]
     );
 
-    // Get earliest messages for context (oldest 20 messages)
+    // Get earliest messages for context
     const messagesResult = await pool.query(
-      'SELECT role, content FROM session_messages WHERE session_id = $1 ORDER BY created_at ASC LIMIT 20',
-      [session_id]
+      'SELECT role, content FROM session_messages WHERE session_id = $1 ORDER BY created_at ASC LIMIT $2',
+      [session_id, CONTEXT_MESSAGE_LIMIT]
     );
 
     // Get checkpoints for session summary context
@@ -142,7 +154,11 @@ router.post('/message', async (req: AuthenticatedRequest, res: Response) => {
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('Access-Control-Allow-Origin', '*');
 
+    const abortController = new AbortController();
+    req.on('close', () => abortController.abort());
+
     let fullResponse = '';
+    let disconnected = false;
 
     try {
       fullResponse = await streamChat(
@@ -150,13 +166,26 @@ router.post('/message', async (req: AuthenticatedRequest, res: Response) => {
         character,
         checkpoints,
         (chunk) => {
+          if (res.writableEnded || res.destroyed) {
+            disconnected = true;
+            abortController.abort();
+            return;
+          }
           res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
-        }
+        },
+        abortController.signal
       );
     } catch (llmError) {
       console.error('LLM error:', llmError);
+      if (res.writableEnded || res.destroyed) {
+        return;
+      }
       res.write(`data: ${JSON.stringify({ error: 'LLM service unavailable' })}\n\n`);
       res.end();
+      return;
+    }
+
+    if (disconnected || res.writableEnded || res.destroyed) {
       return;
     }
 
@@ -169,8 +198,10 @@ router.post('/message', async (req: AuthenticatedRequest, res: Response) => {
     // Update session timestamp
     await pool.query('UPDATE game_sessions SET updated_at = NOW() WHERE id = $1', [session_id]);
 
-    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-    res.end();
+    if (!res.writableEnded && !res.destroyed) {
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      res.end();
+    }
   } catch (error) {
     console.error('Send message error:', error);
     if (!res.headersSent) {
@@ -222,6 +253,9 @@ router.post('/checkpoint', async (req: AuthenticatedRequest, res: Response) => {
       console.error('Summary generation error:', llmError);
       res.status(503).json({ error: 'LLM service unavailable for summarization' });
       return;
+    }
+    if (summary.length > MAX_SUMMARY_LENGTH) {
+      summary = summary.slice(0, MAX_SUMMARY_LENGTH);
     }
 
     // Save checkpoint

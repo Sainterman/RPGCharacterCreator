@@ -54,6 +54,15 @@
   background-color: #5a6268;
 }
 
+.form-error {
+  color: #b00020;
+  background: #fdecef;
+  border: 1px solid #f5c2c7;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+}
+
 .form-section {
   background: white;
   padding: 20px;

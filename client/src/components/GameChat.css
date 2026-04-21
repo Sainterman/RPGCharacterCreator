@@ -221,6 +221,14 @@
   border-top: 1px solid #ff6b6b44;
 }
 
+.chat-success {
+  color: #7ddc8a;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  background: #7ddc8a11;
+  border-top: 1px solid #7ddc8a44;
+}
+
 .chat-input-area {
   display: flex;
   gap: 8px;
