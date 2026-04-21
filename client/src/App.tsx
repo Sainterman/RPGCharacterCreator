@@ -126,16 +126,7 @@ function AppContent() {
             </button>
             <button
               onClick={handleOpenChat}
-              style={{
-                backgroundColor: '#6c3483',
-                color: '#fff',
-                border: 'none',
-                padding: '10px 20px',
-                fontSize: '16px',
-                cursor: 'pointer',
-                borderRadius: '4px',
-                marginBottom: '10px',
-              }}
+              className="play-session-button"
             >
               ▶ Play Session
             </button>
