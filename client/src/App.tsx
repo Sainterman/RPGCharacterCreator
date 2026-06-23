@@ -1,18 +1,24 @@
 import { useState } from 'react'
 import './App.css'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import AuthPage from './components/AuthPage'
 import CharacterList from './components/CharacterList'
 import CharacterForm from './components/CharacterForm'
 import XPManager from './components/XPManager'
 import CreationModeSelector from './components/CreationModeSelector'
 import TraditionalCreation from './components/TraditionalCreation'
+import GameChat from './components/GameChat'
 import type { Character } from './types/character'
 import { createEmptyCharacter } from './utils/characterUtils'
 
-type View = 'list' | 'modeSelector' | 'traditionalCreation' | 'form' | 'xp';
+type View = 'list' | 'modeSelector' | 'traditionalCreation' | 'form' | 'xp' | 'chat';
 
-function App() {
+function AppContent() {
   const [currentView, setCurrentView] = useState<View>('list');
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+  const { isAuthenticated, logout } = useAuth();
+
+  if (!isAuthenticated) return <AuthPage />;
 
   const handleSelectCharacter = (character: Character) => {
     setSelectedCharacter(character);
@@ -65,12 +71,23 @@ function App() {
     setSelectedCharacter(character);
   };
 
+  const handleOpenChat = () => {
+    if (selectedCharacter) {
+      setCurrentView('chat');
+    }
+  };
+
+  const handleBackFromChat = () => {
+    setCurrentView('form');
+  };
+
   return (
     <div className="app">
       {currentView === 'list' && (
         <CharacterList
           onSelectCharacter={handleSelectCharacter}
           onCreateNew={handleCreateNew}
+          onLogout={logout}
         />
       )}
 
@@ -87,10 +104,10 @@ function App() {
           onCancel={handleCancel}
         />
       )}
-      
+
       {currentView === 'form' && selectedCharacter && (
         <>
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
             <button
               onClick={handleOpenXPManager}
               className="xp-manager-button"
@@ -107,6 +124,12 @@ function App() {
             >
               Manage Experience Points
             </button>
+            <button
+              onClick={handleOpenChat}
+              className="play-session-button"
+            >
+              ▶ Play Session
+            </button>
           </div>
           <CharacterForm
             character={selectedCharacter}
@@ -115,7 +138,7 @@ function App() {
           />
         </>
       )}
-      
+
       {currentView === 'xp' && selectedCharacter && (
         <XPManager
           character={selectedCharacter}
@@ -123,8 +146,23 @@ function App() {
           onClose={handleCloseXPManager}
         />
       )}
+
+      {currentView === 'chat' && selectedCharacter && (
+        <GameChat
+          character={selectedCharacter}
+          onBack={handleBackFromChat}
+        />
+      )}
     </div>
   )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 export default App

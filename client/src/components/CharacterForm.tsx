@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Character, Essence } from '../types/character';
 import { TRADITIONS, ESSENCES, NATURES, DEMEANORS } from '../constants/gameData';
-import { saveCharacter } from '../utils/characterUtils';
+import { apiCreateCharacter, apiUpdateCharacter } from '../services/api';
 import './CharacterForm.css';
 
 interface CharacterFormProps {
@@ -12,6 +12,7 @@ interface CharacterFormProps {
 
 const CharacterForm: React.FC<CharacterFormProps> = ({ character, onSave, onCancel }) => {
   const [char, setChar] = React.useState<Character>(character);
+  const [saveError, setSaveError] = React.useState('');
 
   const updateField = <K extends keyof Character>(field: K, value: Character[K]) => {
     setChar({ ...char, [field]: value });
@@ -45,9 +46,19 @@ const CharacterForm: React.FC<CharacterFormProps> = ({ character, onSave, onCanc
     });
   };
 
-  const handleSave = () => {
-    saveCharacter(char);
-    onSave();
+  const handleSave = async () => {
+    try {
+      const updated = { ...char, updatedAt: new Date() };
+      if (updated.id) {
+        await apiUpdateCharacter(updated.id, updated.name || 'Unnamed', updated);
+      } else {
+        await apiCreateCharacter(updated.name || 'Unnamed', updated);
+      }
+      setSaveError('');
+      onSave();
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Could not save character');
+    }
   };
 
   return (
@@ -59,6 +70,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({ character, onSave, onCanc
           <button onClick={onCancel} className="cancel-button">Back</button>
         </div>
       </div>
+      {saveError && <div className="form-error">{saveError}</div>}
 
       <div className="form-section">
         <h2>Basic Information</h2>
