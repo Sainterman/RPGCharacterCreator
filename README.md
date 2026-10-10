@@ -60,7 +60,25 @@ materials, alterations, affiliations with a role) and exports them to Unreal.
 - **Exportar para Unreal** writes `client/export/DT_Characters.json`. See
   [`unreal/README.md`](unreal/README.md) to import it into a Data Table.
 - The id and the paradigm are fixed once saved: changing them means creating a new character.
-- `npm test` runs the contract tests.
+- `npm test` runs the contract and MCP tests.
+
+### MCP server (Claude Code)
+
+The same characters are exposed as a local MCP server (stdio), so an agent can
+create a character and export it for Unreal in one conversation. It reads and
+writes the same files as the sheet and does **not** need `npm run dev`.
+
+Tools: `list_catalogs`, `list_characters`, `get_character`, `create_character`,
+`update_character` (id and paradigm fixed; omitted fields are kept) and
+`export_for_unreal` (returns the absolute path of `DT_Characters.json`).
+There is no delete tool: delete from the sheet. Importing into the Data Table
+is done by the game's `unreal-mcp`, not by this server.
+
+- **Register:** `.mcp.json` at the repo root already registers it as
+  `emerald-characters`. Run `npm install` in `client/` once, open Claude Code in
+  the repo root and approve the server when asked (check with `/mcp`).
+- **Run by hand:** `cd client && npm run mcp` (speaks MCP over stdin/stdout).
+- Code: `client/server/emerald/` (`fileStore.ts` is shared with the Vite plugin).
 
 ## Usage
 
