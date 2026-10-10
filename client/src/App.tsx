@@ -7,10 +7,45 @@ import CreationModeSelector from './components/CreationModeSelector'
 import TraditionalCreation from './components/TraditionalCreation'
 import type { Character } from './types/character'
 import { createEmptyCharacter } from './utils/characterUtils'
+import EmeraldApp from './emerald/EmeraldApp'
 
 type View = 'list' | 'modeSelector' | 'traditionalCreation' | 'form' | 'xp';
+type Sheet = 'mage' | 'emerald';
+
+const SHEET_KEY = 'selected_sheet';
 
 function App() {
+  const [sheet, setSheet] = useState<Sheet>(() =>
+    localStorage.getItem(SHEET_KEY) === 'emerald' ? 'emerald' : 'mage'
+  );
+
+  const handleSelectSheet = (next: Sheet) => {
+    setSheet(next);
+    localStorage.setItem(SHEET_KEY, next);
+  };
+
+  return (
+    <div className="app">
+      <nav className="sheet-switcher">
+        <button
+          className={sheet === 'mage' ? 'is-active' : ''}
+          onClick={() => handleSelectSheet('mage')}
+        >
+          Mage: The Ascension
+        </button>
+        <button
+          className={sheet === 'emerald' ? 'is-active' : ''}
+          onClick={() => handleSelectSheet('emerald')}
+        >
+          Emerald Nightmare
+        </button>
+      </nav>
+      {sheet === 'mage' ? <MageApp /> : <EmeraldApp />}
+    </div>
+  )
+}
+
+function MageApp() {
   const [currentView, setCurrentView] = useState<View>('list');
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
 
@@ -66,7 +101,7 @@ function App() {
   };
 
   return (
-    <div className="app">
+    <div>
       {currentView === 'list' && (
         <CharacterList
           onSelectCharacter={handleSelectCharacter}
