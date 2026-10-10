@@ -1,6 +1,7 @@
 // Reference row struct for the Emerald Nightmare character Data Table.
-// This file is NOT compiled here: copy it into the game module when the
-// director approves it. Property names match the JSON contract exactly.
+// This file is NOT compiled here. The game uses a copy of it as
+// FENCharacterRow in Source/EmeraldNightmare/Characters/ENCharacterRow.h.
+// Property names match the JSON contract exactly.
 //
 // Open decisions (see unreal/README.md):
 // - FName vs. UENUM for Paradigm, Role, KnownMaterials and Alterations.
