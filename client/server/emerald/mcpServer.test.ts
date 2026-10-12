@@ -127,7 +127,10 @@ describe('emerald MCP server', () => {
     await call('create_character', { name: 'Isadora', paradigm: 'matter' });
     const exported = await call('export_for_unreal');
     expect(exported.isError).toBe(false);
-    expect(exported.data.file).toBe(path.join(root, 'export', 'DT_Characters.json'));
+    expect(exported.data.file).toBe(
+      path.join(root, 'export', 'DT_Characters.json').replace(/\\/g, '/'),
+    );
+    expect(exported.data.file).not.toContain('\\');
     expect(path.isAbsolute(exported.data.file)).toBe(true);
     expect(exported.data.count).toBe(2);
 

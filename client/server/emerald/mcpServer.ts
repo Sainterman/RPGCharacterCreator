@@ -139,13 +139,15 @@ export const createEmeraldMcpServer = (store: EmeraldStore): McpServer => {
     'export_for_unreal',
     {
       description:
-        'Write all characters to client/export/DT_Characters.json (array of contract rows, row key = "id") and return its absolute path. Import into the Data Table is done by the game\'s unreal-mcp, not here.',
+        'Write all characters to client/export/DT_Characters.json (array of contract rows, row key = "id") and return its absolute path (always with forward slashes). Import into the Data Table is done by the game\'s unreal-mcp, not here.',
       annotations: { destructiveHint: false, idempotentHint: true },
     },
     () =>
       run(async () => {
         const { file, rows } = await store.exportForUnreal();
-        return { file, count: rows.length, rows };
+        // Forward slashes: the path is often pasted into Python string
+        // literals on the Unreal side, where a backslash can become an escape.
+        return { file: file.replace(/\\/g, '/'), count: rows.length, rows };
       }),
   );
 
