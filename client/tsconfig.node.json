@@ -22,5 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts", "vite-plugins", "src/emerald/contract.ts", "src/emerald/types.ts"]
+  "include": ["vite.config.ts", "vite-plugins", "server", "src/emerald/contract.ts", "src/emerald/types.ts"]
 }

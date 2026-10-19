@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "emerald-characters": {
+      "command": "node",
+      "args": ["client/node_modules/tsx/dist/cli.mjs", "client/server/emerald/main.ts"]
+    }
+  }
+}
