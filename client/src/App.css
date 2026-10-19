@@ -11,3 +11,27 @@
   background-color: #e0a800 !important;
 }
 
+
+.sheet-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #222;
+}
+
+.sheet-switcher button {
+  background: none;
+  border: 1px solid #666;
+  color: #ddd;
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.sheet-switcher button.is-active {
+  background: #fff;
+  color: #222;
+  border-color: #fff;
+}

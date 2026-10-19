@@ -46,6 +46,22 @@ npm run build
 
 The built files will be in the `client/dist` directory.
 
+## Emerald Nightmare character picker
+
+Use the **Emerald Nightmare** tab at the top. This sheet does not use the Mage
+system or XP: it creates Emerald Nightmare characters (paradigm, known
+materials, alterations, affiliations with a role) and exports them to Unreal.
+
+- Characters are saved as JSON files in `client/data/emerald-nightmare/characters/<id>.json`
+  (versioned in git). Catalogs (ids in English, labels in Spanish) live in
+  `client/data/emerald-nightmare/catalogs.json` and are editable from the **Catálogos** screen.
+- Storage runs inside the Vite server (`client/vite-plugins/emeraldStore.ts`):
+  it needs `npm run dev` (or `npm run preview`), no database.
+- **Exportar para Unreal** writes `client/export/DT_Characters.json`. See
+  [`unreal/README.md`](unreal/README.md) to import it into a Data Table.
+- The id and the paradigm are fixed once saved: changing them means creating a new character.
+- `npm test` runs the contract tests.
+
 ## Usage
 
 ### Creating a Character

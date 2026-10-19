@@ -1,0 +1,26 @@
+{
+  "id": "kael",
+  "name": "Kael",
+  "nature": "",
+  "affiliations": [
+    {
+      "id": "cairo_hermetic_order",
+      "role": "origin"
+    },
+    {
+      "id": "alchemist_order",
+      "role": "ally"
+    }
+  ],
+  "paradigm": "matter",
+  "knownMaterials": [
+    "stone",
+    "water",
+    "metal"
+  ],
+  "alterations": [
+    "remove",
+    "add",
+    "relocate"
+  ]
+}

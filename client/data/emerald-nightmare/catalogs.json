@@ -1,0 +1,23 @@
+{
+  "paradigms": [
+    { "id": "matter", "label": "Materia" }
+  ],
+  "materials": [
+    { "id": "stone", "label": "Piedra" },
+    { "id": "water", "label": "Agua" },
+    { "id": "metal", "label": "Metal" }
+  ],
+  "alterations": [
+    { "id": "remove", "label": "Quitar" },
+    { "id": "add", "label": "Añadir" },
+    { "id": "relocate", "label": "Reubicar" }
+  ],
+  "affiliations": [
+    { "id": "cairo_hermetic_order", "label": "Orden Hermética de El Cairo" },
+    { "id": "alchemist_order", "label": "Orden de los Alquimistas" }
+  ],
+  "roles": [
+    { "id": "origin", "label": "Origen" },
+    { "id": "ally", "label": "Aliado" }
+  ]
+}
