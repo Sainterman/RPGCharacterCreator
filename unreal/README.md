@@ -5,6 +5,15 @@ character, containing only the contract fields (`id`, `name`, `nature`,
 `affiliations`, `paradigm`, `knownMaterials`, `alterations`). Nothing else
 crosses to Unreal. There is no live sync: export, then (re)import.
 
+`affiliations` is an array of `{ id, relation }`. `relation` is `ally` or
+`enemy` (the `FName relation` property of `FCharacterAffiliation`); an
+affiliation that is not listed is neutral. `knownMaterials` is only filled
+when `paradigm` is `matter`; otherwise it exports as an empty array.
+
+> D-030 renamed `role` to `relation` and removed `origin`. The row struct
+> changed, so re-copy `CharacterRow.h` and reimport `DT_Characters` (and repeat
+> the import test below) after pulling this change.
+
 ## What the UE 5.8 docs confirm
 
 - [Data Driven Gameplay Elements](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-driven-gameplay-elements-in-unreal-engine):

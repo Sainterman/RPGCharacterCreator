@@ -1,5 +1,6 @@
 // Pure helpers shared by the browser UI and the Vite file-store plugin.
 // Must not touch the DOM or Node APIs.
+import { RELATIONS } from './types';
 import type { Catalogs, CatalogName, EmeraldCharacter } from './types';
 
 export const ID_PATTERN = /^[a-z][a-z0-9_]*$/;
@@ -31,7 +32,7 @@ export const toContractRow = (c: EmeraldCharacter): EmeraldCharacter => ({
   id: c.id,
   name: c.name,
   nature: c.nature,
-  affiliations: c.affiliations.map(({ id, role }) => ({ id, role })),
+  affiliations: c.affiliations.map(({ id, relation }) => ({ id, relation })),
   paradigm: c.paradigm,
   knownMaterials: [...c.knownMaterials],
   alterations: [...c.alterations],
@@ -55,10 +56,10 @@ export const validateShape = (c: unknown): string[] => {
   if (
     !Array.isArray(aff) ||
     !aff.every(
-      (a) => a && typeof a === 'object' && typeof a.id === 'string' && typeof a.role === 'string',
+      (a) => a && typeof a === 'object' && typeof a.id === 'string' && typeof a.relation === 'string',
     )
   ) {
-    errors.push('"affiliations" debe ser una lista de { id, role }.');
+    errors.push('"affiliations" debe ser una lista de { id, relation }.');
   }
   return errors;
 };
@@ -95,10 +96,15 @@ export const validateCharacter = (c: EmeraldCharacter, catalogs: Catalogs): stri
     if (seenAffiliations.has(a.id)) errors.push(`affiliations: "${a.id}" está repetida.`);
     seenAffiliations.add(a.id);
     checkRef(errors, catalogs, 'affiliations', a.id, 'affiliations');
-    checkRef(errors, catalogs, 'roles', a.role, `role de "${a.id}"`);
+    if (!(RELATIONS as readonly string[]).includes(a.relation)) {
+      errors.push(`relation de "${a.id}": "${a.relation}" no es válida (usa ally o enemy).`);
+    }
   }
   for (const m of new Set(c.knownMaterials)) checkRef(errors, catalogs, 'materials', m, 'knownMaterials');
   for (const a of new Set(c.alterations)) checkRef(errors, catalogs, 'alterations', a, 'alterations');
+  if (c.paradigm !== 'matter' && c.knownMaterials.length > 0) {
+    errors.push('knownMaterials: solo aplica al paradigma matter; debe ir vacío.');
+  }
   if (new Set(c.knownMaterials).size !== c.knownMaterials.length) {
     errors.push('knownMaterials: hay materiales repetidos.');
   }

@@ -14,10 +14,9 @@
   ],
   "affiliations": [
     { "id": "cairo_hermetic_order", "label": "Orden Hermética de El Cairo" },
-    { "id": "alchemist_order", "label": "Orden de los Alquimistas" }
-  ],
-  "roles": [
-    { "id": "origin", "label": "Origen" },
-    { "id": "ally", "label": "Aliado" }
+    { "id": "alchemist_order", "label": "Orden de los Alquimistas" },
+    { "id": "verum_veritas", "label": "Verum Veritas" },
+    { "id": "inquisition", "label": "Inquisición" },
+    { "id": "null_arcanum", "label": "Null Arcanum" }
   ]
 }

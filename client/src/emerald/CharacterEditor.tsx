@@ -1,5 +1,6 @@
 import React from 'react';
-import type { Affiliation, Catalogs, CatalogEntry, EmeraldCharacter } from './types';
+import { RELATIONS } from './types';
+import type { Affiliation, Catalogs, CatalogEntry, EmeraldCharacter, Relation } from './types';
 import { slugify, toContractRow, validateCharacter } from './contract';
 import { ApiError, createCharacter, updateCharacter } from './api';
 
@@ -76,7 +77,7 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({
   const addAffiliation = () => {
     const next = unusedAffiliations[0];
     if (!next) return;
-    setAffiliations([...draft.affiliations, { id: next.id, role: catalogs.roles[0]?.id ?? '' }]);
+    setAffiliations([...draft.affiliations, { id: next.id, relation: 'ally' }]);
   };
 
   const handleSave = async () => {
@@ -159,13 +160,15 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({
         )}
       </fieldset>
 
-      <Checklist
-        title="Materiales conocidos"
-        hint="La lista crece con la historia del personaje."
-        entries={catalogs.materials}
-        selected={draft.knownMaterials}
-        onChange={(ids) => set('knownMaterials', ids)}
-      />
+      {draft.paradigm === 'matter' && (
+        <Checklist
+          title="Materiales conocidos"
+          hint="La lista crece con la historia del personaje."
+          entries={catalogs.materials}
+          selected={draft.knownMaterials}
+          onChange={(ids) => set('knownMaterials', ids)}
+        />
+      )}
 
       <Checklist
         title="Alteraciones"
@@ -200,21 +203,20 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({
                 ))}
             </select>
             <select
-              value={a.role}
+              value={a.relation}
               onChange={(e) =>
                 setAffiliations(
-                  draft.affiliations.map((x, j) => (j === i ? { ...x, role: e.target.value } : x)),
+                  draft.affiliations.map((x, j) =>
+                    j === i ? { ...x, relation: e.target.value as Relation } : x,
+                  ),
                 )
               }
             >
-              {!catalogs.roles.some((r) => r.id === a.role) && (
-                <option value={a.role}>{a.role || '—'} (no está en el catálogo)</option>
+              {!RELATIONS.includes(a.relation) && (
+                <option value={a.relation}>{String(a.relation) || '—'} (no válida)</option>
               )}
-              {catalogs.roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.label}
-                </option>
-              ))}
+              <option value="ally">Aliado</option>
+              <option value="enemy">Enemigo</option>
             </select>
             <button
               className="en-button is-quiet"
