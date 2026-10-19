@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import catalogs from '../../data/emerald-nightmare/catalogs.json';
-import kael from '../../data/emerald-nightmare/characters/kael.json';
+import kaelJson from '../../data/emerald-nightmare/characters/kael.json';
 import { buildExport, slugify, toContractRow, validateCharacter } from './contract';
 import type { EmeraldCharacter } from './types';
+
+const kael = kaelJson as EmeraldCharacter;
 
 const contractKael = {
   id: 'kael',
   name: 'Kael',
   nature: '',
   affiliations: [
-    { id: 'cairo_hermetic_order', role: 'origin' },
-    { id: 'alchemist_order', role: 'ally' },
+    { id: 'alchemist_order', relation: 'ally' },
+    { id: 'verum_veritas', relation: 'ally' },
+    { id: 'inquisition', relation: 'enemy' },
+    { id: 'null_arcanum', relation: 'enemy' },
   ],
   paradigm: 'matter',
   knownMaterials: ['stone', 'water', 'metal'],
@@ -44,17 +48,39 @@ describe('validateCharacter', () => {
       ...kael,
       paradigm: 'time',
       affiliations: [
-        { id: 'alchemist_order', role: 'ally' },
-        { id: 'alchemist_order', role: 'enemy' },
+        { id: 'alchemist_order', relation: 'ally' },
+        { id: 'alchemist_order', relation: 'enemy' },
       ],
       knownMaterials: ['stone', 'stone', 'glass'],
     };
     const errors = validateCharacter(bad, catalogs);
     expect(errors.some((e) => e.includes('"time"'))).toBe(true);
     expect(errors.some((e) => e.includes('repetida'))).toBe(true);
-    expect(errors.some((e) => e.includes('"enemy"'))).toBe(true);
     expect(errors.some((e) => e.includes('"glass"'))).toBe(true);
     expect(errors.some((e) => e.includes('materiales repetidos'))).toBe(true);
+  });
+
+  it('rejects an invalid relation', () => {
+    const bad = {
+      ...kael,
+      affiliations: [{ id: 'inquisition', relation: 'neutral' }],
+    } as unknown as EmeraldCharacter;
+    const errors = validateCharacter(bad, catalogs);
+    expect(errors.some((e) => e.includes('relation') && e.includes('"neutral"'))).toBe(true);
+  });
+
+  it('rejects knownMaterials when the paradigm is not matter', () => {
+    const errors = validateCharacter(
+      { ...kael, paradigm: 'time', knownMaterials: ['stone'] },
+      { ...catalogs, paradigms: [...catalogs.paradigms, { id: 'time', label: 'Tiempo' }] },
+    );
+    expect(errors.some((e) => e.includes('solo aplica al paradigma matter'))).toBe(true);
+    expect(
+      validateCharacter(
+        { ...kael, paradigm: 'time', knownMaterials: [] },
+        { ...catalogs, paradigms: [...catalogs.paradigms, { id: 'time', label: 'Tiempo' }] },
+      ),
+    ).toEqual([]);
   });
 
   it('rejects ids that are not identifiers', () => {
@@ -70,6 +96,12 @@ describe('buildExport', () => {
     expect(errors).toEqual([]);
     expect(rows.map((r) => r.id)).toEqual(['kael', 'zara']);
     expect(rows[0]).toEqual(contractKael);
+  });
+
+  it('does not export the legacy role key', () => {
+    const { rows } = buildExport([kael], catalogs);
+    expect(JSON.stringify(rows)).not.toContain('"role"');
+    expect(rows[0].affiliations.every((a) => 'relation' in a && !('role' in a))).toBe(true);
   });
 
   it('reports duplicate ids', () => {

@@ -4,12 +4,20 @@
   "nature": "",
   "affiliations": [
     {
-      "id": "cairo_hermetic_order",
-      "role": "origin"
+      "id": "alchemist_order",
+      "relation": "ally"
     },
     {
-      "id": "alchemist_order",
-      "role": "ally"
+      "id": "verum_veritas",
+      "relation": "ally"
+    },
+    {
+      "id": "inquisition",
+      "relation": "enemy"
+    },
+    {
+      "id": "null_arcanum",
+      "relation": "enemy"
     }
   ],
   "paradigm": "matter",

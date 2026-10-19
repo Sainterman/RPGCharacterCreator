@@ -10,7 +10,9 @@ import type { EmeraldStore } from './fileStore';
 
 const affiliationSchema = z.object({
   id: z.string().describe('Affiliation id from the affiliations catalog'),
-  role: z.string().describe('Role id from the roles catalog'),
+  relation: z
+    .enum(['ally', 'enemy'])
+    .describe('ally or enemy; an affiliation not listed is neutral'),
 });
 
 const editableFields = {
@@ -18,8 +20,10 @@ const editableFields = {
   nature: z.string().describe('Free text; may be empty'),
   affiliations: z
     .array(affiliationSchema)
-    .describe('Affiliations, each with its role; one entry per affiliation id'),
-  knownMaterials: z.array(z.string()).describe('Material ids from the materials catalog'),
+    .describe('Affiliations, each with its relation (ally or enemy); one entry per affiliation id'),
+  knownMaterials: z
+    .array(z.string())
+    .describe('Material ids from the materials catalog. Only for paradigm matter; must be empty otherwise'),
   alterations: z.array(z.string()).describe('Alteration ids from the alterations catalog'),
 };
 
@@ -49,7 +53,7 @@ export const createEmeraldMcpServer = (store: EmeraldStore): McpServer => {
     'list_catalogs',
     {
       description:
-        'List the Emerald Nightmare catalogs (paradigms, materials, alterations, affiliations, roles) as { id, label }. Characters must reference these ids.',
+        'List the Emerald Nightmare catalogs (paradigms, materials, alterations, affiliations) as { id, label }. Characters must reference these ids.',
       annotations: { readOnlyHint: true },
     },
     () => run(() => store.loadCatalogs()),

@@ -64,14 +64,14 @@ describe('emerald MCP server', () => {
       name: 'Isadora Vélez',
       paradigm: 'matter',
       knownMaterials: ['water'],
-      affiliations: [{ id: 'alchemist_order', role: 'origin' }],
+      affiliations: [{ id: 'alchemist_order', relation: 'ally' }],
     });
     expect(created.isError).toBe(false);
     expect(created.data).toEqual({
       id: 'isadora_velez',
       name: 'Isadora Vélez',
       nature: '',
-      affiliations: [{ id: 'alchemist_order', role: 'origin' }],
+      affiliations: [{ id: 'alchemist_order', relation: 'ally' }],
       paradigm: 'matter',
       knownMaterials: ['water'],
       alterations: [],

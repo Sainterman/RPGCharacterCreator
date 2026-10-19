@@ -3,7 +3,7 @@
 // director approves it. Property names match the JSON contract exactly.
 //
 // Open decisions (see unreal/README.md):
-// - FName vs. UENUM for Paradigm, Role, KnownMaterials and Alterations.
+// - FName vs. UENUM for Paradigm, Relation, KnownMaterials and Alterations.
 // - Whether the row keeps an "id" property or relies only on the row name.
 // Rename EMERALD_API to the game module's API macro.
 
@@ -22,7 +22,7 @@ struct FCharacterAffiliation
 	FName id;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName role;
+	FName relation;
 };
 
 USTRUCT(BlueprintType)

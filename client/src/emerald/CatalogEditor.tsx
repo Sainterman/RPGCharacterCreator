@@ -15,7 +15,6 @@ const TITLES: Record<CatalogName, string> = {
   materials: 'Materiales',
   alterations: 'Alteraciones',
   affiliations: 'Afiliaciones',
-  roles: 'Roles de afiliación',
 };
 
 interface Row {

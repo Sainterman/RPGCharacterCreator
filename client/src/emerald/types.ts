@@ -3,9 +3,13 @@
 // The fields below are exactly the contract exported to Unreal: keys and
 // values are English identifiers; Spanish display text lives in the catalogs.
 
+// Absent means neutral: only allies and enemies are listed.
+export const RELATIONS = ['ally', 'enemy'] as const;
+export type Relation = (typeof RELATIONS)[number];
+
 export interface Affiliation {
   id: string;
-  role: string;
+  relation: Relation;
 }
 
 export interface EmeraldCharacter {
@@ -28,7 +32,6 @@ export interface Catalogs {
   materials: CatalogEntry[];
   alterations: CatalogEntry[];
   affiliations: CatalogEntry[];
-  roles: CatalogEntry[];
 }
 
 export type CatalogName = keyof Catalogs;
@@ -38,5 +41,4 @@ export const CATALOG_NAMES: CatalogName[] = [
   'materials',
   'alterations',
   'affiliations',
-  'roles',
 ];
